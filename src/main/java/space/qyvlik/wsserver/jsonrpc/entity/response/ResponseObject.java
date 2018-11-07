@@ -17,6 +17,12 @@ public class ResponseObject<T> implements Serializable {
         this.result = result;
     }
 
+    public ResponseObject(Long id, String method, Integer code, String message) {
+        this.id = id;
+        this.method = method;
+        this.error = new ResponseError(code, message);
+    }
+
     public ResponseObject(Integer code, String message) {
         this.error = new ResponseError(code, message);
     }

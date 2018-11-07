@@ -3,23 +3,29 @@ package space.qyvlik.wsserver.jsonrpc.method;
 import java.io.Serializable;
 
 public abstract class RpcParam implements Serializable {
-    private Class clazz;
 
-    public RpcParam(Class clazz) {
-        this.clazz = clazz;
+    private String typeName;
+    private String paramName;
+
+    public String getTypeName() {
+        return typeName;
     }
 
-    public Class getClazz() {
-        return clazz;
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
     }
 
-    public void setClazz(Class clazz) {
-        this.clazz = clazz;
+    public String getParamName() {
+        return paramName;
+    }
+
+    public void setParamName(String paramName) {
+        this.paramName = paramName;
     }
 
     public boolean canConvert(Object param) {
-        return canConvertInternal(getClazz(), param);
+        return canConvertInternal(param);
     }
 
-    protected abstract boolean canConvertInternal(Class clazz, Object param);
+    protected abstract boolean canConvertInternal(Object param);
 }

@@ -3,6 +3,7 @@ package space.qyvlik.wsserver.jsonrpc.method;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.socket.WebSocketSession;
 import space.qyvlik.wsserver.jsonrpc.entity.request.RequestObject;
+import space.qyvlik.wsserver.jsonrpc.entity.response.ResponseError;
 import space.qyvlik.wsserver.jsonrpc.entity.response.ResponseObject;
 
 public abstract class RpcMethod {
@@ -22,39 +23,53 @@ public abstract class RpcMethod {
         return rpcParams;
     }
 
-    public boolean checkParams(RequestObject requestObject) {
+    public RpcParamCheckError checkParams(RequestObject requestObject) {
         int paramSize = requestObject.getParams() != null
                 ? requestObject.getParams().size()
                 : 0;
-        int minSize = rpcParams.getMinParamSize();
-        int maxSize = rpcParams.getMaxParamSize();
-
-        if (paramSize > maxSize || paramSize < minSize) {
-            return false;
-        }
-
-        if (paramSize == 0) {
-            return true;
-        }
 
         for (int i = 0; i < paramSize; i++) {
             Object param = requestObject.getParams().get(i);
             RpcParam rpcParam = rpcParams.getParamTypeList().get(i);
             if (!rpcParam.canConvert(param)) {
-                return false;
+                return new RpcParamCheckError(
+                        rpcParam.getParamName(), rpcParam.getTypeName(), i);
             }
         }
-        return true;
+        return null;
     }
 
     public ResponseObject call(WebSocketSession session, RequestObject requestObject) {
         ResponseObject response = null;
         try {
+            int paramSize = requestObject.getParams() != null
+                    ? requestObject.getParams().size()
+                    : 0;
 
-            boolean checkParamResult = checkParams(requestObject);
-            if (!checkParamResult) {
-                response = new ResponseObject(500, "param type not match");
-                return response;
+            int minSize = rpcParams.getMinParamSize();
+            int maxSize = rpcParams.getMaxParamSize();
+
+            if (paramSize > maxSize || paramSize < minSize) {
+                return new ResponseObject(
+                        requestObject.getId(),
+                        requestObject.getMethod(),
+                        500,
+                        "paramSize >= " + minSize + " or <= " + maxSize);
+            }
+
+            RpcParamCheckError checkParamResult = checkParams(requestObject);
+            if (checkParamResult != null) {
+
+                ResponseError error =
+                        new ResponseError(500, "param type not match");
+                error.setData(checkParamResult);
+
+                ResponseObject responseObject = new ResponseObject();
+                responseObject.setId(requestObject.getId());
+                responseObject.setMethod(requestObject.getMethod());
+                responseObject.setError(error);
+
+                return responseObject;
             }
 
             response = callInternal(session, requestObject);
