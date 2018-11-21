@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class SubChannel implements Serializable {
     private String channel;
-    private Map<String, WebSocketSession> sessionMap = Maps.newConcurrentMap();
+    private Map<String, ChannelSession> sessionMap = Maps.newConcurrentMap();
 
     public SubChannel() {
 
@@ -22,19 +22,15 @@ public class SubChannel implements Serializable {
         this.channel = channel;
     }
 
-    public void onSub(WebSocketSession session) {
-        sessionMap.put(session.getId(), session);
+    public void onSub(SubRequestObject subRequestObject, WebSocketSession session) {
+        sessionMap.put(session.getId(), new ChannelSession(session, subRequestObject));
     }
 
     public void onUnSub(WebSocketSession session) {
         sessionMap.remove(session.getId());
     }
 
-    public Map<String, WebSocketSession> getSessionMap() {
+    public Map<String, ChannelSession> getSessionMap() {
         return sessionMap;
-    }
-
-    public void setSessionMap(Map<String, WebSocketSession> sessionMap) {
-        this.sessionMap = sessionMap;
     }
 }

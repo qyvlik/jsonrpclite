@@ -2,8 +2,11 @@ package space.qyvlik.wsserver.handle;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import space.qyvlik.wsserver.jsonsub.sub.ChannelSession;
 import space.qyvlik.wsserver.jsonsub.sub.SubChannel;
+import space.qyvlik.wsserver.jsonsub.sub.SubRequestObject;
 
 import java.util.List;
 import java.util.Map;
@@ -32,17 +35,17 @@ public class WebSocketSessionContainer {
         sessionMap.remove(session.getId());
     }
 
-    public void onSub(String channel, WebSocketSession session) {
+    public void onSub(SubRequestObject subRequestObject, WebSocketSession session) {
         if (session == null) {
             return;
         }
 
-        SubChannel subChannel = subscribeChannelMap.get(channel);
+        SubChannel subChannel = subscribeChannelMap.get(subRequestObject.getChannel());
         if (subChannel == null) {
-            subscribeChannelMap.putIfAbsent(channel, new SubChannel());
-            subChannel = subscribeChannelMap.get(channel);
+            subscribeChannelMap.putIfAbsent(subRequestObject.getChannel(), new SubChannel());
+            subChannel = subscribeChannelMap.get(subRequestObject.getChannel());
         }
-        subChannel.onSub(session);
+        subChannel.onSub(subRequestObject, session);
     }
 
     public void onUnSub(String channel, WebSocketSession session) {
@@ -53,7 +56,7 @@ public class WebSocketSessionContainer {
         subChannel.onUnSub(session);
     }
 
-    public List<WebSocketSession> getSessionListFromChannel(String channel) {
+    public List<ChannelSession> getSessionListFromChannel(String channel) {
         SubChannel subChannel = subscribeChannelMap.get(channel);
         if (subChannel == null) {
             return null;

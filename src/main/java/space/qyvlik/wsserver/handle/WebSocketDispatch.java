@@ -167,7 +167,7 @@ public class WebSocketDispatch extends TextWebSocketHandler {
         if (subRequestObject.getSubscribe() == null || !subRequestObject.getSubscribe()) {
             webSocketSessionContainer.onUnSub(subRequestObject.getChannel(), session);
         } else {
-            webSocketSessionContainer.onSub(subRequestObject.getChannel(), session);
+            webSocketSessionContainer.onSub(subRequestObject, session);
         }
 
         ChannelMessage<String> channelMessage = new ChannelMessage<>();
@@ -182,11 +182,13 @@ public class WebSocketDispatch extends TextWebSocketHandler {
     }
 
 
-    private void safeSend(WebSocketSession session, Object obj) {
+    private boolean safeSend(WebSocketSession session, Object obj) {
         try {
             session.sendMessage(new TextMessage(JSON.toJSONString(obj)));
+            return true;
         } catch (Exception e) {
             logger.error("safeSend:{}", e.getMessage());
+            return false;
         }
     }
 

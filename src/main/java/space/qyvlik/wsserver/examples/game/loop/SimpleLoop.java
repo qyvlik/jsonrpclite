@@ -10,6 +10,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import space.qyvlik.wsserver.handle.WebSocketSessionContainer;
 import space.qyvlik.wsserver.jsonsub.pub.ChannelMessage;
+import space.qyvlik.wsserver.jsonsub.sub.ChannelSession;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -43,7 +44,7 @@ public class SimpleLoop {
     }
 
     private void timeTick() {
-        List<WebSocketSession> sessionList = webSocketSessionContainer.getSessionListFromChannel("pub.tick");
+        List<ChannelSession> sessionList = webSocketSessionContainer.getSessionListFromChannel("pub.tick");
 
         if (sessionList == null || sessionList.size() == 0) {
             return;
@@ -52,16 +53,21 @@ public class SimpleLoop {
         ChannelMessage<Long> tickMessage = new ChannelMessage<>();
         tickMessage.setChannel("pub.tick");
         tickMessage.setResult(System.currentTimeMillis());
-        for (WebSocketSession webSocketSession : sessionList) {
-            safeSend(webSocketSession, tickMessage);
+        for (ChannelSession channelSession : sessionList) {
+            boolean r = safeSend(channelSession.getWebSocketSession(), tickMessage);
+            if (!r) {
+                webSocketSessionContainer.onUnSub("pub.tick", channelSession.getWebSocketSession());
+            }
         }
     }
 
-    private void safeSend(WebSocketSession session, Object obj) {
+    private boolean safeSend(WebSocketSession session, Object obj) {
         try {
             session.sendMessage(new TextMessage(JSON.toJSONString(obj)));
+            return true;
         } catch (Exception e) {
             logger.error("safeSend:{}", e.getMessage());
+            return false;
         }
     }
 }
