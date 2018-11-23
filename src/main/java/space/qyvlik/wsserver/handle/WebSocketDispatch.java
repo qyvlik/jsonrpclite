@@ -184,7 +184,9 @@ public class WebSocketDispatch extends TextWebSocketHandler {
 
     private boolean safeSend(WebSocketSession session, Object obj) {
         try {
-            session.sendMessage(new TextMessage(JSON.toJSONString(obj)));
+            synchronized (session) {
+                session.sendMessage(new TextMessage(JSON.toJSONString(obj)));
+            }
             return true;
         } catch (Exception e) {
             logger.error("safeSend:{}", e.getMessage());

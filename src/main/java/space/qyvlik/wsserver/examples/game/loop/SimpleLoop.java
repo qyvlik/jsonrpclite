@@ -54,20 +54,13 @@ public class SimpleLoop {
         tickMessage.setChannel("pub.tick");
         tickMessage.setResult(System.currentTimeMillis());
         for (ChannelSession channelSession : sessionList) {
-            boolean r = safeSend(channelSession.getWebSocketSession(), tickMessage);
+            boolean r = webSocketSessionContainer.safeSend(
+                    channelSession.getWebSocketSession(),
+                    new TextMessage(JSON.toJSONString(tickMessage))
+            );
             if (!r) {
                 webSocketSessionContainer.onUnSub("pub.tick", channelSession.getWebSocketSession());
             }
-        }
-    }
-
-    private boolean safeSend(WebSocketSession session, Object obj) {
-        try {
-            session.sendMessage(new TextMessage(JSON.toJSONString(obj)));
-            return true;
-        } catch (Exception e) {
-            logger.error("safeSend:{}", e.getMessage());
-            return false;
         }
     }
 }

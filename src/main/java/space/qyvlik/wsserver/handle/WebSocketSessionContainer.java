@@ -71,4 +71,15 @@ public class WebSocketSessionContainer {
     public Map<String, SubChannel> getSubscribeChannelMap() {
         return subscribeChannelMap;
     }
+
+    public boolean safeSend(WebSocketSession session, TextMessage textMessage) {
+        try {
+            synchronized (session) {
+                session.sendMessage(textMessage);
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
