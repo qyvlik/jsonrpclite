@@ -2,6 +2,8 @@
 
 This is a websocket json-rpc & subscribe push library
 
-## example
+## deploy
 
-
+```bash
+mvn clean deploy -P release -Dmaven.test.skip=true -Dgpg.passphrase=
+```
