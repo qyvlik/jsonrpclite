@@ -18,6 +18,12 @@ public class RpcParams implements Serializable {
         this.paramTypeList = paramTypeList;
     }
 
+    public RpcParams(List<RpcParam> paramTypeList) {
+        this.paramTypeList = paramTypeList;
+        this.maxParamSize = paramTypeList.size();
+        this.minParamSize = paramTypeList.size();
+    }
+
     public int getMaxParamSize() {
         return maxParamSize;
     }

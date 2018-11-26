@@ -7,7 +7,11 @@ import io.github.qyvlik.jsonrpclite.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.jsonsub.sub.SubRequestObject;
 
 @Service
-public class AuthFilter implements WebSocketFilter {
+public class AuthFilter extends WebSocketFilter {
+
+    public AuthFilter() {
+        setGroup("example");
+    }
 
     @Override
     public boolean filter(WebSocketSession session, RequestObject requestObject) {

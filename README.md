@@ -5,5 +5,6 @@ This is a websocket json-rpc & subscribe push library
 ## deploy
 
 ```bash
-mvn clean deploy -P release -Dmaven.test.skip=true -Dgpg.passphrase=
+export GPG_TTY=$(tty)
+mvn clean deploy -Prelease -Dmaven.test.skip=true
 ```

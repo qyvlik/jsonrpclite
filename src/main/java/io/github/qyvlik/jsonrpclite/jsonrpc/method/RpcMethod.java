@@ -7,12 +7,18 @@ import io.github.qyvlik.jsonrpclite.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.jsonrpc.entity.response.ResponseObject;
 
 public abstract class RpcMethod {
+    private String group;
     private String method;
     private RpcParams rpcParams;
 
-    public RpcMethod(String method, RpcParams rpcParams) {
+    public RpcMethod(String group, String method, RpcParams rpcParams) {
+        this.group = group;
         this.method = method;
         this.rpcParams = rpcParams;
+    }
+
+    public String getGroup() {
+        return group;
     }
 
     public String getMethod() {

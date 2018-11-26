@@ -26,9 +26,18 @@ import java.util.concurrent.Executor;
 public class WebSocketDispatch extends TextWebSocketHandler {
     private final List<WebSocketFilter> filterList = Lists.newLinkedList();
     private final Map<String, RpcMethod> methodMap = Maps.newConcurrentMap();
+    private String group;
     private Logger logger = LoggerFactory.getLogger(getClass());
     private WebSocketSessionContainer webSocketSessionContainer;
     private Executor executor;
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
 
     public Executor getExecutor() {
         return executor;
@@ -55,8 +64,15 @@ public class WebSocketDispatch extends TextWebSocketHandler {
         }
     }
 
-    public void addRpcMethod(RpcMethod rpcMethod) {
-        methodMap.put(rpcMethod.getMethod(), rpcMethod);
+    public boolean addRpcMethod(RpcMethod rpcMethod) {
+        if (StringUtils.isNotBlank(this.getGroup())
+                && this.getGroup().equals(rpcMethod.getGroup())) {
+
+            methodMap.put(rpcMethod.getMethod(), rpcMethod);
+            return true;
+        }
+
+        return false;
     }
 
     public void addFilterList(List<WebSocketFilter> filterList) {
@@ -68,8 +84,13 @@ public class WebSocketDispatch extends TextWebSocketHandler {
         }
     }
 
-    public void addFilter(WebSocketFilter filter) {
-        filterList.add(filter);
+    public boolean addFilter(WebSocketFilter filter) {
+        if (StringUtils.isNotBlank(this.getGroup())
+                && this.getGroup().equals(filter.getGroup())) {
+            filterList.add(filter);
+            return true;
+        }
+        return false;
     }
 
     public List<WebSocketFilter> getFilterList() {
