@@ -2,6 +2,16 @@
 
 This is a websocket json-rpc & subscribe push library
 
+## maven
+
+```xml
+<dependency>
+    <groupId>io.github.qyvlik</groupId>
+    <artifactId>jsonrpclite</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
 ## deploy
 
 ```bash
