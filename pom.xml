@@ -12,11 +12,11 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.qyvlik</groupId>
-    <artifactId>jsonrpclite</artifactId>
-    <version>1.0</version>
+    <artifactId>jsonrpclite-parent</artifactId>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>jsonrpclite</name>
+    <name>jsonrpclite-parent</name>
     <description>jsonrpclite</description>
     <url>https://github.com/qyvlik/jsonrpclite</url>
 
@@ -42,57 +42,15 @@
 
     <licenses>
         <license>
-            <name>MIT</name>
-            <url>MIT</url>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
         </license>
     </licenses>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.51</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>23.3-jre</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.3.2</version>
-        </dependency>
-
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
+    <modules>
+        <module>jsonrpclite-core</module>
+        <module>jsonrpclite-example</module>
+    </modules>
 
     <profiles>
         <profile>
