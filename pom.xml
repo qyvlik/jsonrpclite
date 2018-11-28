@@ -14,7 +14,7 @@
     <groupId>io.github.qyvlik</groupId>
     <artifactId>jsonrpclite-parent</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>jsonrpclite-parent</name>
     <description>jsonrpclite</description>
