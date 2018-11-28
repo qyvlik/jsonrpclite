@@ -7,7 +7,7 @@ This is a websocket json-rpc & subscribe push library
 ```xml
 <dependency>
     <groupId>io.github.qyvlik</groupId>
-    <artifactId>jsonrpclite</artifactId>
+    <artifactId>jsonrpclite-core</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
