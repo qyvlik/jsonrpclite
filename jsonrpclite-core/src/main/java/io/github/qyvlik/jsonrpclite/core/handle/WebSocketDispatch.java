@@ -165,7 +165,10 @@ public class WebSocketDispatch extends TextWebSocketHandler {
             return;
         }
 
-        executor.execute(new Runnable() {
+        Executor methodExecutor = rpcMethod.getExecutor() != null ?
+                rpcMethod.getExecutor() : executor;
+
+        methodExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 safeSend(session, rpcMethod.call(session, requestObject));
@@ -204,6 +207,10 @@ public class WebSocketDispatch extends TextWebSocketHandler {
 
 
     private boolean safeSend(WebSocketSession session, Object obj) {
+        if (webSocketSessionContainer != null) {
+            return webSocketSessionContainer.safeSend(session, new TextMessage(JSON.toJSONString(obj)));
+        }
+
         try {
             synchronized (session) {
                 session.sendMessage(new TextMessage(JSON.toJSONString(obj)));

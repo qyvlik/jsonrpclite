@@ -6,10 +6,13 @@ import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.concurrent.Executor;
+
 public abstract class RpcMethod {
     private String group;
     private String method;
     private RpcParams rpcParams;
+    private Executor executor;
 
     public RpcMethod(String group, String method, RpcParams rpcParams) {
         this.group = group;
@@ -27,6 +30,14 @@ public abstract class RpcMethod {
 
     public RpcParams getRpcParams() {
         return rpcParams;
+    }
+
+    public Executor getExecutor() {
+        return executor;
+    }
+
+    public void setExecutor(Executor executor) {
+        this.executor = executor;
     }
 
     public RpcParamCheckError checkParams(RequestObject requestObject) {

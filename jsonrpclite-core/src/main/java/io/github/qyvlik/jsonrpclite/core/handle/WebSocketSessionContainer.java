@@ -5,14 +5,21 @@ import com.google.common.collect.Maps;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.ChannelSession;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubChannel;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubRequestObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
 import java.util.List;
 import java.util.Map;
 
 
 public class WebSocketSessionContainer {
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
+    private Map<String, ConcurrentWebSocketSessionDecorator> sessionDecoratorMap = Maps.newConcurrentMap();
     private Map<String, WebSocketSession> sessionMap = Maps.newConcurrentMap();
     private Map<String, SubChannel> subscribeChannelMap = Maps.newConcurrentMap();
 
@@ -33,6 +40,7 @@ public class WebSocketSessionContainer {
             subChannel.onUnSub(session);
         }
         sessionMap.remove(session.getId());
+        sessionDecoratorMap.remove(session.getId());
     }
 
     public void onSub(SubRequestObject subRequestObject, WebSocketSession session) {
@@ -72,13 +80,15 @@ public class WebSocketSessionContainer {
         return subscribeChannelMap;
     }
 
-    public boolean safeSend(WebSocketSession session, TextMessage textMessage) {
+    public boolean safeSend(WebSocketSession session, WebSocketMessage webSocketMessage) {
         try {
-            synchronized (session) {
-                session.sendMessage(textMessage);
-            }
+            sessionDecoratorMap.computeIfAbsent(
+                    session.getId(),
+                    k -> new ConcurrentWebSocketSessionDecorator(session, 1000, 1000000))
+                    .sendMessage(webSocketMessage);
             return true;
         } catch (Exception e) {
+            logger.error("safeSend error:{}", e.getMessage());
             return false;
         }
     }
