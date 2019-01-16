@@ -12,7 +12,6 @@ public abstract class RpcMethod {
     private String group;
     private String method;
     private RpcParams rpcParams;
-    private Executor executor;
 
     public RpcMethod(String group, String method, RpcParams rpcParams) {
         this.group = group;
@@ -32,12 +31,8 @@ public abstract class RpcMethod {
         return rpcParams;
     }
 
-    public Executor getExecutor() {
-        return executor;
-    }
-
-    public void setExecutor(Executor executor) {
-        this.executor = executor;
+    public Executor getExecutorByRequest(RequestObject requestObject) {
+        return null;
     }
 
     public RpcParamCheckError checkParams(RequestObject requestObject) {
@@ -81,12 +76,12 @@ public abstract class RpcMethod {
                         new ResponseError(500, "param type not match");
                 error.setData(checkParamResult);
 
-                ResponseObject responseObject = new ResponseObject();
-                responseObject.setId(requestObject.getId());
-                responseObject.setMethod(requestObject.getMethod());
-                responseObject.setError(error);
+                response = new ResponseObject();
+                response.setId(requestObject.getId());
+                response.setMethod(requestObject.getMethod());
+                response.setError(error);
 
-                return responseObject;
+                return response;
             }
 
             response = callInternal(session, requestObject);
