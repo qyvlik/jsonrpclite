@@ -13,7 +13,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class LoginMethod extends RpcMethod {
 
     public LoginMethod() {
-        super("example", "pub.login",
+        super("game", "pub.login",
                 new RpcParams(2, 2, Lists.newArrayList(
                         new StringParam("userName"),
                         new StringParam("password")

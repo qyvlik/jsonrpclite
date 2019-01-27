@@ -30,4 +30,13 @@ public class ChannelError implements Serializable {
     public void setData(Object data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        return "ChannelError{" +
+                "code=" + code +
+                ", message='" + message + '\'' +
+                ", data=" + data +
+                '}';
+    }
 }

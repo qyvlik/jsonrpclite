@@ -34,4 +34,13 @@ public class ChannelMessage<T> implements Serializable {
     public void setError(ChannelError error) {
         this.error = error;
     }
+
+    @Override
+    public String toString() {
+        return "ChannelMessage{" +
+                "channel='" + channel + '\'' +
+                ", result=" + result +
+                ", error=" + error +
+                '}';
+    }
 }

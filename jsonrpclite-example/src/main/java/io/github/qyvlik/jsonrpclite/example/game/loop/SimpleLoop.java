@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 
@@ -20,26 +21,18 @@ import java.util.concurrent.TimeUnit;
 public class SimpleLoop {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    @Qualifier("scheduledExecutorService")
-    private ScheduledExecutorService scheduledExecutorService;
 
     @Autowired
     @Qualifier("webSocketSessionContainer")
     private WebSocketSessionContainer webSocketSessionContainer;
 
-    @PostConstruct
+    @Scheduled(fixedRate = 1000L, initialDelay = 2000)
     public void loopStart() {
-        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    timeTick();
-                } catch (Exception e) {
-                    logger.error("timeTick error:{}", e.getMessage());
-                }
-            }
-        }, 10000, 1000, TimeUnit.MILLISECONDS);
+        try {
+            timeTick();
+        } catch (Exception e) {
+            logger.error("timeTick error:{}", e.getMessage());
+        }
     }
 
     private void timeTick() {

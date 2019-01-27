@@ -10,7 +10,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class AuthFilter extends WebSocketFilter {
 
     public AuthFilter() {
-        setGroup("example");
+        setGroup("game");
     }
 
     @Override

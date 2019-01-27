@@ -1,35 +1,26 @@
 package io.github.qyvlik.jsonrpclite.example.config;
 
+import io.github.qyvlik.jsonrpclite.core.client.RpcClient;
 import io.github.qyvlik.jsonrpclite.core.handle.WebSocketDispatch;
 import io.github.qyvlik.jsonrpclite.core.handle.WebSocketFilter;
 import io.github.qyvlik.jsonrpclite.core.handle.WebSocketSessionContainer;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.method.RpcMethod;
+import io.github.qyvlik.jsonrpclite.example.client.GameClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 @Configuration
 public class BeanConfig {
 
-    @Autowired
-    private List<RpcMethod> rpcMethodList;
-
-    @Autowired
-    private List<WebSocketFilter> filters;
-
     @Bean("executor")
     public Executor executor() {
-        return Executors.newFixedThreadPool(4);
-    }
-
-    @Bean("scheduledExecutorService")
-    public ScheduledExecutorService scheduledExecutorService() {
-        return Executors.newSingleThreadScheduledExecutor();
+        return Executors.newCachedThreadPool();
     }
 
     @Bean("webSocketSessionContainer")
@@ -37,12 +28,20 @@ public class BeanConfig {
         return new WebSocketSessionContainer();
     }
 
+    @Bean("gameClient")
+    public GameClient gameClient() {
+        return new GameClient(new RpcClient("ws://localhost:8080/game"));
+    }
+
     @Bean("gameDispatch")
-    public WebSocketDispatch gameDispatch(@Autowired Executor executor,
-                                          @Autowired WebSocketSessionContainer webSocketSessionContainer) {
+    public WebSocketDispatch gameDispatch(@Qualifier("executor") Executor executor,
+                                          @Qualifier("webSocketSessionContainer") WebSocketSessionContainer webSocketSessionContainer,
+                                          @Autowired List<RpcMethod> rpcMethodList,
+                                          @Autowired List<WebSocketFilter> filters
+    ) {
         WebSocketDispatch webSocketDispatch = new WebSocketDispatch();
 
-        webSocketDispatch.setGroup("example");
+        webSocketDispatch.setGroup("game");
         webSocketDispatch.setExecutor(executor);
         webSocketDispatch.setWebSocketSessionContainer(webSocketSessionContainer);
         webSocketDispatch.addRpcMethodList(rpcMethodList);

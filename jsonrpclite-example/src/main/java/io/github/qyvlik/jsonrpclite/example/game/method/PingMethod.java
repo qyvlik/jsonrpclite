@@ -10,7 +10,7 @@ import org.springframework.web.socket.WebSocketSession;
 @Service
 public class PingMethod extends RpcMethod {
     public PingMethod() {
-        super("example", "pub.ping", new RpcParams());
+        super("game", "pub.ping", new RpcParams());
     }
 
     @Override
