@@ -135,6 +135,7 @@ public class WebSocketDispatch extends TextWebSocketHandler {
                 SubRequestObject subRequestObject = jsonObject.toJavaObject(SubRequestObject.class);
                 handleSub(session, subRequestObject);
             } else {
+                response.setId(jsonObject.getLong("id"));
                 response.setError(new ResponseError(400,
                         "payload not match type in system"));
                 safeSend(session, response);
