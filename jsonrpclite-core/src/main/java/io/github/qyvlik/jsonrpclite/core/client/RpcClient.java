@@ -14,6 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketConnectionManager;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
 import javax.websocket.ContainerProvider;
 import javax.websocket.WebSocketContainer;
@@ -24,23 +25,47 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class RpcClient {
+    // todo expired the object in map
+    private final Map<Long, RpcResponseFuture> rpcCallback = Maps.newConcurrentMap();
+    private final Map<String, ChannelMessageHandler> channelCallback = Maps.newConcurrentMap();
+    private final Map<String, ConcurrentWebSocketSessionDecorator> sessionDecoratorMap = Maps.newConcurrentMap();
+    private final AtomicLong rpcRequestCounter = new AtomicLong(0);
     private StandardWebSocketClient webSocketClient;
     private WebSocketSession webSocketSession;
     private WebSocketConnectionManager webSocketConnectionManager;
     private String wsUrl;
-    // todo expired the object in map
-    private Map<Long, RpcResponseFuture> rpcCallback = Maps.newConcurrentMap();
-    private Map<String, ChannelMessageHandler> channelCallback = Maps.newConcurrentMap();
+    private int sendTimeLimit = 1000;
+    private int bufferSizeLimit = 10000;
 
-    private AtomicLong rpcRequestCounter = new AtomicLong(0);
-
-    public RpcClient(String wsUrl) {
+    public RpcClient(String wsUrl, int sendTimeLimit, int bufferSizeLimit) {
+        this.sendTimeLimit = sendTimeLimit;
+        this.bufferSizeLimit = bufferSizeLimit;
         this.wsUrl = wsUrl;
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         container.setDefaultMaxTextMessageBufferSize(10 * 1024 * 1024);
         webSocketClient = new StandardWebSocketClient(container);
         webSocketConnectionManager = new WebSocketConnectionManager(webSocketClient,
                 new RpcClientTextHandler(), this.wsUrl);
+    }
+
+    public RpcClient(String wsUrl) {
+        this(wsUrl, 1000, 10000);
+    }
+
+    public int getSendTimeLimit() {
+        return sendTimeLimit;
+    }
+
+    public void setSendTimeLimit(int sendTimeLimit) {
+        this.sendTimeLimit = sendTimeLimit;
+    }
+
+    public int getBufferSizeLimit() {
+        return bufferSizeLimit;
+    }
+
+    public void setBufferSizeLimit(int bufferSizeLimit) {
+        this.bufferSizeLimit = bufferSizeLimit;
     }
 
     public void startup() {
@@ -67,7 +92,12 @@ public class RpcClient {
         subRequestObject.setSubscribe(subscribe);
         subRequestObject.setParams(params);
 
-        webSocketSession.sendMessage(new TextMessage(JSON.toJSONString(subRequestObject)));
+        ConcurrentWebSocketSessionDecorator decorator =
+                sessionDecoratorMap.computeIfAbsent(webSocketSession.getId(),
+                        k -> new ConcurrentWebSocketSessionDecorator(
+                                webSocketSession, getSendTimeLimit(), getBufferSizeLimit()));
+
+        decorator.sendMessage(new TextMessage(JSON.toJSONString(subRequestObject)));
     }
 
     public Future<ResponseObject> callRpcAsync(String method, List params) throws Exception {
@@ -96,7 +126,12 @@ public class RpcClient {
             rpcCallback.put(requestObject.getId(), rpcResponseFuture);
         }
 
-        webSocketSession.sendMessage(new TextMessage(JSON.toJSONString(requestObject)));
+        ConcurrentWebSocketSessionDecorator decorator =
+                sessionDecoratorMap.computeIfAbsent(webSocketSession.getId(),
+                        k -> new ConcurrentWebSocketSessionDecorator(
+                                webSocketSession, getSendTimeLimit(), getBufferSizeLimit()));
+
+        decorator.sendMessage(new TextMessage(JSON.toJSONString(requestObject)));
 
         return rpcResponseFuture;
     }
@@ -129,6 +164,7 @@ public class RpcClient {
 
         @Override
         public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+            sessionDecoratorMap.remove(session.getId());
             webSocketSession = null;
         }
 

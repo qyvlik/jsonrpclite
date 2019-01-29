@@ -25,12 +25,12 @@ public class BeanConfig {
 
     @Bean("webSocketSessionContainer")
     public WebSocketSessionContainer webSocketSessionContainer() {
-        return new WebSocketSessionContainer();
+        return new WebSocketSessionContainer(2000, 20000);
     }
 
     @Bean("gameClient")
     public GameClient gameClient() {
-        return new GameClient(new RpcClient("ws://localhost:8080/game"));
+        return new GameClient(new RpcClient("ws://localhost:8080/game", 2000, 20000));
     }
 
     @Bean("gameDispatch")

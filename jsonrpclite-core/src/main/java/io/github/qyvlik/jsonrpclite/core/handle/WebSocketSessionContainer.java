@@ -7,7 +7,6 @@ import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubChannel;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubRequestObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
@@ -17,11 +16,37 @@ import java.util.Map;
 
 
 public class WebSocketSessionContainer {
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Map<String, ConcurrentWebSocketSessionDecorator> sessionDecoratorMap = Maps.newConcurrentMap();
-    private Map<String, WebSocketSession> sessionMap = Maps.newConcurrentMap();
-    private Map<String, SubChannel> subscribeChannelMap = Maps.newConcurrentMap();
+    private final Map<String, ConcurrentWebSocketSessionDecorator> sessionDecoratorMap = Maps.newConcurrentMap();
+    private final Map<String, WebSocketSession> sessionMap = Maps.newConcurrentMap();
+    private final Map<String, SubChannel> subscribeChannelMap = Maps.newConcurrentMap();
+    private int sendTimeLimit = 1000;
+    private int bufferSizeLimit = 10000;
+
+    public WebSocketSessionContainer() {
+    }
+
+    public WebSocketSessionContainer(int sendTimeLimit, int bufferSizeLimit) {
+        this.sendTimeLimit = sendTimeLimit;
+        this.bufferSizeLimit = bufferSizeLimit;
+    }
+
+    public int getSendTimeLimit() {
+        return sendTimeLimit;
+    }
+
+    public void setSendTimeLimit(int sendTimeLimit) {
+        this.sendTimeLimit = sendTimeLimit;
+    }
+
+    public int getBufferSizeLimit() {
+        return bufferSizeLimit;
+    }
+
+    public void setBufferSizeLimit(int bufferSizeLimit) {
+        this.bufferSizeLimit = bufferSizeLimit;
+    }
 
     public void onOpen(WebSocketSession session) {
         if (session == null) {
@@ -84,13 +109,15 @@ public class WebSocketSessionContainer {
         if (!session.isOpen()) {
             return false;
         }
+
         try {
-            sessionDecoratorMap.computeIfAbsent(
-                    session.getId(),
-                    k -> new ConcurrentWebSocketSessionDecorator(session, 1000, 100000))
-                    .sendMessage(webSocketMessage);
+            ConcurrentWebSocketSessionDecorator decorator = sessionDecoratorMap.computeIfAbsent(session.getId(),
+                    k -> new ConcurrentWebSocketSessionDecorator(
+                            session, getSendTimeLimit(), getBufferSizeLimit()));
+            decorator.sendMessage(webSocketMessage);
             return true;
         } catch (Exception e) {
+            sessionDecoratorMap.remove(session.getId());
             logger.error("safeSend error:{}", e.getMessage());
             return false;
         }
