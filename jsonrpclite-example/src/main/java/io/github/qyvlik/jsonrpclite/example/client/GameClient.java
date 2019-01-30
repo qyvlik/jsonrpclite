@@ -36,11 +36,15 @@ public class GameClient {
         }
 
         try {
-            Future<ResponseObject> future = rpcClient.callRpcAsync("pub.ping", Lists.newArrayList());
+            Future<ResponseObject> future = rpcClient.callRpcAsync(
+                    "pub.ping", Lists.newArrayList(), false);
 
             ResponseObject responseObject = future.get();
 
             logger.info("ping:{}", responseObject);
+
+            rpcClient.callRpcAsync(
+                    "pub.ping", Lists.newArrayList());
 
         } catch (Exception e) {
             logger.error("ping error:", e);

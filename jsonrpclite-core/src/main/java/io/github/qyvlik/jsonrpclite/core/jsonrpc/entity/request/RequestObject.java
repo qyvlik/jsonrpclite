@@ -6,8 +6,9 @@ import java.util.Map;
 
 public class RequestObject implements Serializable {
     private Long id;
-    private String method;
-    private List params;
+    private Boolean ignore;                     // ignore response
+    private String method;                      // method
+    private List params;                        // params
     private Map<String, Object> paramMap;
 
     public RequestObject() {
@@ -20,6 +21,14 @@ public class RequestObject implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Boolean getIgnore() {
+        return ignore;
+    }
+
+    public void setIgnore(Boolean ignore) {
+        this.ignore = ignore;
     }
 
     public String getMethod() {

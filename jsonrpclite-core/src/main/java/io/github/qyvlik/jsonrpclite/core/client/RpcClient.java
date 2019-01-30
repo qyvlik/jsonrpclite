@@ -100,7 +100,18 @@ public class RpcClient {
         decorator.sendMessage(new TextMessage(JSON.toJSONString(subRequestObject)));
     }
 
-    public Future<ResponseObject> callRpcAsync(String method, List params) throws Exception {
+    public void callRpcAsync(String method, List params) throws Exception {
+        callRpcAsync(method, params, true);
+    }
+
+    /**
+     * @param method         rpc method
+     * @param params         rpc params
+     * @param ignoreResponse ignore rpc response
+     * @return
+     * @throws Exception
+     */
+    public Future<ResponseObject> callRpcAsync(String method, List params, boolean ignoreResponse) throws Exception {
         if (!isOpen()) {
             throw new RuntimeException("callRpcAsyncInternal failure webSocketSession is not open");
         }
@@ -110,18 +121,18 @@ public class RpcClient {
         requestObject.setId(id);
         requestObject.setMethod(method);
         requestObject.setParams(params);
-        return callRpcAsyncInternal(requestObject, true);
+        return callRpcAsyncInternal(requestObject, ignoreResponse);
     }
 
     private Future<ResponseObject> callRpcAsyncInternal(RequestObject requestObject,
-                                                        boolean returnFuture)
+                                                        boolean ignoreResponse)
             throws IOException {
         if (requestObject == null || requestObject.getId() == null) {
             throw new RuntimeException("callRpcAsyncInternal failure requestObject is null or requestObject's id is null");
         }
 
         RpcResponseFuture rpcResponseFuture = null;
-        if (returnFuture) {
+        if (!ignoreResponse) {
             rpcResponseFuture = new RpcResponseFuture();
             rpcCallback.put(requestObject.getId(), rpcResponseFuture);
         }

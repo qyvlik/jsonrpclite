@@ -135,7 +135,6 @@ public class WebSocketDispatch extends TextWebSocketHandler {
                 SubRequestObject subRequestObject = jsonObject.toJavaObject(SubRequestObject.class);
                 handleSub(session, subRequestObject);
             } else {
-                response.setId(jsonObject.getLong("id"));
                 response.setError(new ResponseError(400,
                         "payload not match type in system"));
                 safeSend(session, response);
@@ -162,19 +161,24 @@ public class WebSocketDispatch extends TextWebSocketHandler {
         if (rpcMethod == null) {
             response.setError(new ResponseError(404,
                     "method " + requestObject.getMethod() + " not found"));
-            safeSend(session, response);
+            if (requestObject.getIgnore() == null || !requestObject.getIgnore()) {
+                safeSend(session, response);
+            }
             return;
         }
 
         Executor methodInternalExecutor = rpcMethod.getExecutorByRequest(requestObject);
 
         Executor methodExecutor = methodInternalExecutor != null ?
-                methodInternalExecutor : executor;
+                methodInternalExecutor : getExecutor();
 
         methodExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                safeSend(session, rpcMethod.call(session, requestObject));
+                ResponseObject responseObject = rpcMethod.call(session, requestObject);
+                if (requestObject.getIgnore() == null || !requestObject.getIgnore()) {
+                    safeSend(session, responseObject);
+                }
             }
         });
     }
