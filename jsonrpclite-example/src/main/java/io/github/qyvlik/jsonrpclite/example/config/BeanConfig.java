@@ -37,8 +37,7 @@ public class BeanConfig {
     public WebSocketDispatch gameDispatch(@Qualifier("executor") Executor executor,
                                           @Qualifier("webSocketSessionContainer") WebSocketSessionContainer webSocketSessionContainer,
                                           @Autowired List<RpcMethod> rpcMethodList,
-                                          @Autowired List<WebSocketFilter> filters
-    ) {
+                                          @Autowired List<WebSocketFilter> filters) {
         WebSocketDispatch webSocketDispatch = new WebSocketDispatch();
 
         webSocketDispatch.setGroup("game");

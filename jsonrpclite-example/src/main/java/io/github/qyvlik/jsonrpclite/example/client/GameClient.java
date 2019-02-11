@@ -15,7 +15,6 @@ public class GameClient {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private RpcClient rpcClient;
     private boolean sub = false;
-    private boolean isOpen = false;
 
     public GameClient(RpcClient rpcClient) {
         this.rpcClient = rpcClient;
@@ -23,9 +22,12 @@ public class GameClient {
 
     public void startupClient() {
         logger.info("startupClient start");
-        if (this.rpcClient != null) {
-            this.rpcClient.startup();
-            isOpen = true;
+        if (!this.rpcClient.isOpen() && this.rpcClient != null) {
+            try {
+                this.rpcClient.startup().get();
+            } catch (Exception e) {
+                logger.error("startupClient failure:{}", e.getMessage());
+            }
         }
         logger.info("startupClient end");
     }
@@ -36,8 +38,8 @@ public class GameClient {
         }
 
         try {
-            Future<ResponseObject> future = rpcClient.callRpcAsync(
-                    "pub.ping", Lists.newArrayList(), false);
+            Future<ResponseObject> future = rpcClient.callRpc(
+                    "pub.ping", Lists.newArrayList());
 
             ResponseObject responseObject = future.get();
 
@@ -72,7 +74,7 @@ public class GameClient {
 
     @Scheduled(fixedRate = 1000L, initialDelay = 1000)
     public void tick() {
-        if (!isOpen) {
+        if (!this.rpcClient.isOpen()) {
             startupClient();
         }
 
