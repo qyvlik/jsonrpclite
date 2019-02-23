@@ -151,9 +151,8 @@ public class WebSocketDispatch extends TextWebSocketHandler {
             response.setMethod(requestObject.getMethod());
             response.setError(new ResponseError(400, "group " + getGroup() + " not exist"));
             safeSend(session, response);
+            return;
         }
-
-        // todo check the group is null;
 
         Executor methodInternalExecutor = rpcExecutor.getByRequest(session, requestObject);
 
