@@ -1,22 +1,15 @@
 package io.github.qyvlik.jsonrpclite.example.game.method;
 
-import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
-import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
-import io.github.qyvlik.jsonrpclite.core.jsonrpc.method.RpcMethod;
-import io.github.qyvlik.jsonrpclite.core.jsonrpc.method.RpcParams;
+import io.github.qyvlik.jsonrpclite.core.jsonrpc.annotation.RpcMethod;
+import io.github.qyvlik.jsonrpclite.core.jsonrpc.annotation.RpcService;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.WebSocketSession;
 
+@RpcService
 @Service
-public class PingMethod extends RpcMethod {
-    public PingMethod() {
-        super("game", "pub.ping", new RpcParams());
-    }
+public class PingMethod {
 
-    @Override
-    protected ResponseObject callInternal(WebSocketSession session, RequestObject requestObject) {
-        ResponseObject<Long> responseObject = new ResponseObject<>();
-        responseObject.setResult(System.currentTimeMillis());
-        return responseObject;
+    @RpcMethod(group = "game", value = "pub.ping")
+    public Long pubPing() {
+        return System.currentTimeMillis();
     }
 }

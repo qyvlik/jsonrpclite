@@ -24,6 +24,5 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(gameDispatch, "/game")
                 .setHandshakeHandler(new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy()))
                 .setAllowedOrigins("*");
-
     }
 }

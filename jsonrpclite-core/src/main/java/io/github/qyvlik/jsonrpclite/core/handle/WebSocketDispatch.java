@@ -3,11 +3,12 @@ package io.github.qyvlik.jsonrpclite.core.handle;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseError;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
-import io.github.qyvlik.jsonrpclite.core.jsonrpc.method.RpcMethod;
+import io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker.RpcDispatcher;
+import io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker.RpcExecutor;
+import io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker.RpcMethodGroup;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.pub.ChannelMessage;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubRequestObject;
 import org.apache.commons.lang3.StringUtils;
@@ -20,16 +21,16 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 
 public class WebSocketDispatch extends TextWebSocketHandler {
     private final List<WebSocketFilter> filterList = Lists.newLinkedList();
-    private final Map<String, RpcMethod> methodMap = Maps.newConcurrentMap();
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private RpcDispatcher rpcDispatcher;
     private String group;
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private RpcExecutor rpcExecutor;
     private WebSocketSessionContainer webSocketSessionContainer;
-    private Executor executor;
 
     public String getGroup() {
         return group;
@@ -39,12 +40,24 @@ public class WebSocketDispatch extends TextWebSocketHandler {
         this.group = group;
     }
 
-    public Executor getExecutor() {
-        return executor;
+    public RpcDispatcher getRpcDispatcher() {
+        return rpcDispatcher;
     }
 
-    public void setExecutor(Executor executor) {
-        this.executor = executor;
+    public void setRpcDispatcher(RpcDispatcher rpcDispatcher) {
+        this.rpcDispatcher = rpcDispatcher;
+    }
+
+    public RpcMethodGroup getRpcMethodGroup() {
+        return rpcDispatcher.getGroup(this.group);
+    }
+
+    public RpcExecutor getRpcExecutor() {
+        return rpcExecutor;
+    }
+
+    public void setRpcExecutor(RpcExecutor rpcExecutor) {
+        this.rpcExecutor = rpcExecutor;
     }
 
     public WebSocketSessionContainer getWebSocketSessionContainer() {
@@ -53,26 +66,6 @@ public class WebSocketDispatch extends TextWebSocketHandler {
 
     public void setWebSocketSessionContainer(WebSocketSessionContainer webSocketSessionContainer) {
         this.webSocketSessionContainer = webSocketSessionContainer;
-    }
-
-    public void addRpcMethodList(List<RpcMethod> rpcMethodList) {
-        if (rpcMethodList == null || rpcMethodList.size() == 0) {
-            return;
-        }
-        for (RpcMethod rpcMethod : rpcMethodList) {
-            addRpcMethod(rpcMethod);
-        }
-    }
-
-    public boolean addRpcMethod(RpcMethod rpcMethod) {
-        if (StringUtils.isNotBlank(this.getGroup())
-                && this.getGroup().equals(rpcMethod.getGroup())) {
-
-            methodMap.put(rpcMethod.getMethod(), rpcMethod);
-            return true;
-        }
-
-        return false;
     }
 
     public void addFilterList(List<WebSocketFilter> filterList) {
@@ -97,9 +90,6 @@ public class WebSocketDispatch extends TextWebSocketHandler {
         return filterList;
     }
 
-    public Map<String, RpcMethod> getMethodMap() {
-        return methodMap;
-    }
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message)
@@ -153,29 +143,28 @@ public class WebSocketDispatch extends TextWebSocketHandler {
             }
         }
 
-        final RpcMethod rpcMethod = methodMap.get(requestObject.getMethod());
-        ResponseObject response = new ResponseObject();
-        response.setId(requestObject.getId());
-        response.setMethod(requestObject.getMethod());
+        RpcMethodGroup rpcMethodGroup = getRpcMethodGroup();
 
-        if (rpcMethod == null) {
-            response.setError(new ResponseError(404,
-                    "method " + requestObject.getMethod() + " not found"));
-            if (requestObject.getIgnore() == null || !requestObject.getIgnore()) {
-                safeSend(session, response);
-            }
-            return;
+        if (rpcMethodGroup == null) {
+            ResponseObject response = new ResponseObject();
+            response.setId(requestObject.getId());
+            response.setMethod(requestObject.getMethod());
+            response.setError(new ResponseError(400, "group " + getGroup() + " not exist"));
+            safeSend(session, response);
         }
 
-        Executor methodInternalExecutor = rpcMethod.getExecutorByRequest(requestObject);
+        // todo check the group is null;
+
+        Executor methodInternalExecutor = rpcExecutor.getByRequest(session, requestObject);
 
         Executor methodExecutor = methodInternalExecutor != null ?
-                methodInternalExecutor : getExecutor();
+                methodInternalExecutor : rpcExecutor.defaultExecutor();
 
         methodExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                ResponseObject responseObject = rpcMethod.call(session, requestObject);
+
+                ResponseObject responseObject = rpcMethodGroup.callRpcMethod(session, requestObject);
                 if (requestObject.getIgnore() == null || !requestObject.getIgnore()) {
                     safeSend(session, responseObject);
                 }
