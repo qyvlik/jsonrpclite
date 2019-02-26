@@ -15,7 +15,6 @@ public abstract class WebSocketFilter {
         this.group = group;
     }
 
-
     public abstract boolean filter(WebSocketSession session, RequestObject requestObject);
 
     public abstract boolean filter(WebSocketSession session, SubRequestObject subRequestObject);

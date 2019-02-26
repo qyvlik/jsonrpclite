@@ -1,4 +1,4 @@
-package io.github.qyvlik.jsonrpclite.core.client;
+package io.github.qyvlik.jsonrpclite.core.client.impl;
 
 import java.util.concurrent.*;
 

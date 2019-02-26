@@ -1,4 +1,4 @@
-package io.github.qyvlik.jsonrpclite.core.client;
+package io.github.qyvlik.jsonrpclite.core.client.impl;
 
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;

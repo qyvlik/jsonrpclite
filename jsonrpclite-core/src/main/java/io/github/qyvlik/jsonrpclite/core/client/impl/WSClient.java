@@ -1,8 +1,9 @@
-package io.github.qyvlik.jsonrpclite.core.client;
+package io.github.qyvlik.jsonrpclite.core.client.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
+import io.github.qyvlik.jsonrpclite.core.client.ChannelMessageHandler;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.pub.ChannelMessage;
 import org.apache.commons.lang3.StringUtils;
@@ -14,13 +15,13 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import java.io.IOException;
 import java.util.Map;
 
-public class OnlineClient {
+public class WSClient {
     private final Map<Long, RpcResponseFuture> rpcCallback = Maps.newConcurrentMap();
     private final Map<String, ChannelMessageHandler> channelCallback = Maps.newConcurrentMap();
     private ConcurrentWebSocketSessionDecorator decorator;
     private WebSocketSession session;
 
-    public OnlineClient(WebSocketSession webSocketSession, int sendTimeLimit, int bufferSizeLimit) {
+    public WSClient(WebSocketSession webSocketSession, int sendTimeLimit, int bufferSizeLimit) {
         this.session = webSocketSession;
         this.decorator = new ConcurrentWebSocketSessionDecorator(session, sendTimeLimit, bufferSizeLimit);
     }
