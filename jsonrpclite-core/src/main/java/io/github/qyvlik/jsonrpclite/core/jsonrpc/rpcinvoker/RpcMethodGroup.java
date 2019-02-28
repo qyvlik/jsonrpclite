@@ -1,6 +1,6 @@
 package io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseError;
@@ -111,15 +111,12 @@ public class RpcMethodGroup implements Serializable {
 
         Class<?>[] parameterTypes = invoker.getMethod().getParameterTypes();
 
+        JSONArray paramsArray = (JSONArray) params;
+
         int it = 0;
-        for (Object paramObj : params) {
-            if (paramObj instanceof JSON) {
-                JSON rawObj = (JSON) paramObj;
-                Object convertObj = rawObj.toJavaObject(parameterTypes[it]);
-                pList.add(convertObj);
-            } else {
-                pList.add(paramObj);
-            }
+        for (Class<?> clazz : parameterTypes) {
+            Object convertObj = paramsArray.getObject(it, clazz);
+            pList.add(convertObj);
             it++;
         }
 
