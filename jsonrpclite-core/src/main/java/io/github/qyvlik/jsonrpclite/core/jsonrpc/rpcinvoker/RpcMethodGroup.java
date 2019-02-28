@@ -1,5 +1,7 @@
 package io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker;
 
+import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseError;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
@@ -81,6 +83,8 @@ public class RpcMethodGroup implements Serializable {
                     break;
             }
             response.setError(error);
+        } catch (Exception e) {
+            response.setError(new ResponseError(500, e.getMessage()));
         }
 
         return response;
@@ -97,8 +101,27 @@ public class RpcMethodGroup implements Serializable {
 
         // todo check if need session
 
+        int parameterCount = invoker.getMethod().getParameterCount();
+
+        if (parameterCount != params.size()) {
+            throw new RpcInvokeException("invoker failure: parameterCount != params.size",
+                    null, RpcInvokeException.InvokeError.ParamNotMatch);
+        }
+
+        List<Object> pList = Lists.newLinkedList();
+
+        Class<?>[] parameterTypes = invoker.getMethod().getParameterTypes();
+
+        int it = 0;
+        for (Object paramObj : params) {
+            JSON rawObj = (JSON) paramObj;
+            Object convertObj = rawObj.toJavaObject(parameterTypes[it]);
+            pList.add(convertObj);
+            it++;
+        }
+
         try {
-            return invoker.invoker(params.toArray());
+            return invoker.invoker(pList.toArray());
         } catch (IllegalAccessException e) {
             throw new RpcInvokeException("invoker failure", e, RpcInvokeException.InvokeError.SystemError);
         } catch (IllegalArgumentException e) {

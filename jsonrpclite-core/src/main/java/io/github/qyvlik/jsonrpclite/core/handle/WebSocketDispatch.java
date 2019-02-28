@@ -3,11 +3,11 @@ package io.github.qyvlik.jsonrpclite.core.handle;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import io.github.qyvlik.jsonrpclite.core.jsonrpc.concurrent.RpcExecutor;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseError;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker.RpcDispatcher;
-import io.github.qyvlik.jsonrpclite.core.jsonrpc.concurrent.RpcExecutor;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker.RpcMethodGroup;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.pub.ChannelMessage;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubRequestObject;
@@ -161,7 +161,6 @@ public class WebSocketDispatch extends TextWebSocketHandler {
         methodExecutor.execute(new Runnable() {
             @Override
             public void run() {
-
                 ResponseObject responseObject = rpcMethodGroup.callRpcMethod(session, requestObject);
                 if (requestObject.getIgnore() == null || !requestObject.getIgnore()) {
                     safeSend(session, responseObject);
