@@ -119,25 +119,6 @@ public class RpcMethodGroup implements Serializable {
             it++;
         }
 
-        int parameterCount = invoker.getMethod().getParameterCount();
-
-        if (parameterCount != params.size()) {
-            throw new RpcInvokeException("invoker failure: parameterCount != params.size",
-                    null, RpcInvokeException.InvokeError.ParamNotMatch);
-        }
-
-        List<Object> pList = Lists.newLinkedList();
-
-        Class<?>[] parameterTypes = invoker.getMethod().getParameterTypes();
-
-        int it = 0;
-        for (Object paramObj : params) {
-            JSON rawObj = (JSON) paramObj;
-            Object convertObj = rawObj.toJavaObject(parameterTypes[it]);
-            pList.add(convertObj);
-            it++;
-        }
-
         try {
             return invoker.invoker(pList.toArray());
         } catch (IllegalAccessException e) {
