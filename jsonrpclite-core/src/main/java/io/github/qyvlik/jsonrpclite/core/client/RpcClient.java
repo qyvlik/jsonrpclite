@@ -158,8 +158,11 @@ public class RpcClient {
 
         @Override
         public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-            client.onClose(session, status);
-            client = null;
+            if (client != null) {
+                client.onClose(session, status);
+                client = null;
+            }
+
         }
 
         @Override

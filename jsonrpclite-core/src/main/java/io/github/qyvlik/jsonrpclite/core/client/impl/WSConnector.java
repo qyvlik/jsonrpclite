@@ -10,7 +10,6 @@ import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 import javax.websocket.WebSocketContainer;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WSConnector {
     private StandardWebSocketClient webSocketClient;
@@ -58,12 +57,10 @@ public class WSConnector {
     private static class HandlerDecorator implements WebSocketHandler {
         private WebSocketHandler delegate;
         private ResultFuture<Boolean> startup;
-        private AtomicBoolean lock;
 
         public HandlerDecorator(WebSocketHandler delegate) {
             this.delegate = delegate;
             this.startup = new ResultFuture<Boolean>();
-            this.lock = new AtomicBoolean(true);
         }
 
         public WebSocketHandler getDelegate() {
@@ -76,10 +73,9 @@ public class WSConnector {
 
         @Override
         public void afterConnectionEstablished(WebSocketSession webSocketSession) throws Exception {
-            if (this.lock.getAndSet(false)) {
+            if (!this.startup.isDone()) {
                 this.startup.setResult(true);
             }
-
             this.delegate.afterConnectionEstablished(webSocketSession);
         }
 
@@ -95,11 +91,9 @@ public class WSConnector {
 
         @Override
         public void afterConnectionClosed(WebSocketSession webSocketSession, CloseStatus closeStatus) throws Exception {
-
-            if (this.lock.getAndSet(false)) {
+            if (!this.startup.isDone()) {
                 this.startup.setResult(false);
             }
-
             this.delegate.afterConnectionClosed(webSocketSession, closeStatus);
         }
 

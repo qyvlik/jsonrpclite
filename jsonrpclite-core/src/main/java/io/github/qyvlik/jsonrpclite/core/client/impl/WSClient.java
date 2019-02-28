@@ -43,6 +43,7 @@ public class WSClient {
     }
 
     public void onTextMessage(TextMessage message) {
+        System.out.println("onTextMessage:" + message);
         JSONObject resObj = JSON.parseObject(message.getPayload());
         if (StringUtils.isNotBlank(resObj.getString("channel"))) {
             ChannelMessageHandler channelMessageHandler

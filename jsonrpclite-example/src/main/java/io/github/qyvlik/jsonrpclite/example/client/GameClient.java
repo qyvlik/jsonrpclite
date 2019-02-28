@@ -24,7 +24,8 @@ public class GameClient {
         logger.info("startupClient start");
         if (!this.rpcClient.isOpen() && this.rpcClient != null) {
             try {
-                this.rpcClient.startup().get();
+                boolean result = this.rpcClient.startup().get();
+                logger.info("rpcClient startup : {}", result);
             } catch (Exception e) {
                 logger.error("startupClient failure:{}", e.getMessage());
             }
