@@ -113,9 +113,13 @@ public class RpcMethodGroup implements Serializable {
 
         int it = 0;
         for (Object paramObj : params) {
-            JSON rawObj = (JSON) paramObj;
-            Object convertObj = rawObj.toJavaObject(parameterTypes[it]);
-            pList.add(convertObj);
+            if (paramObj instanceof JSON) {
+                JSON rawObj = (JSON) paramObj;
+                Object convertObj = rawObj.toJavaObject(parameterTypes[it]);
+                pList.add(convertObj);
+            } else {
+                pList.add(paramObj);
+            }
             it++;
         }
 
