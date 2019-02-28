@@ -9,7 +9,6 @@ import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubRequestObject;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
@@ -90,21 +89,6 @@ public class RpcClient {
     }
 
     public void callRpcAsync(String method, List params) throws Exception {
-        callRpcAsync(method, params, true);
-    }
-
-    public Future<ResponseObject> callRpc(String method, List params) throws Exception {
-        return callRpcAsync(method, params, false);
-    }
-
-    /**
-     * @param method         rpc method
-     * @param params         rpc params
-     * @param ignoreResponse ignore rpc response
-     * @return
-     * @throws Exception
-     */
-    private Future<ResponseObject> callRpcAsync(String method, List params, boolean ignoreResponse) throws Exception {
         if (!isOpen()) {
             throw new RuntimeException("callRpcAsync failure webSocketSession is not open");
         }
@@ -114,7 +98,20 @@ public class RpcClient {
         requestObject.setId(id);
         requestObject.setMethod(method);
         requestObject.setParams(params);
-        return callRpcAsyncInternal(requestObject, ignoreResponse);
+        callRpcAsyncInternal(requestObject, true);
+    }
+
+    public Future<ResponseObject> callRpc(String method, List params) throws Exception {
+        if (!isOpen()) {
+            throw new RuntimeException("callRpc failure webSocketSession is not open");
+        }
+
+        Long id = rpcRequestCounter.getAndIncrement();
+        RequestObject requestObject = new RequestObject();
+        requestObject.setId(id);
+        requestObject.setMethod(method);
+        requestObject.setParams(params);
+        return callRpcAsyncInternal(requestObject, false);
     }
 
     private Future<ResponseObject> callRpcAsyncInternal(RequestObject requestObject,
@@ -142,11 +139,6 @@ public class RpcClient {
         }
 
         @Override
-        public void handleMessage(WebSocketSession webSocketSession, WebSocketMessage<?> webSocketMessage) throws Exception {
-            // todo
-        }
-
-        @Override
         protected void handleTextMessage(WebSocketSession session, TextMessage message)
                 throws Exception {
             if (client != null
@@ -162,12 +154,6 @@ public class RpcClient {
                 client.onClose(session, status);
                 client = null;
             }
-
-        }
-
-        @Override
-        public boolean supportsPartialMessages() {
-            return false;
         }
 
         @Override
