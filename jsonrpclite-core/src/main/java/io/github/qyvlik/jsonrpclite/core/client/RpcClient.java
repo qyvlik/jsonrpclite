@@ -1,6 +1,9 @@
 package io.github.qyvlik.jsonrpclite.core.client;
 
 import com.alibaba.fastjson.JSON;
+import io.github.qyvlik.jsonrpclite.core.client.impl.RpcResponseFuture;
+import io.github.qyvlik.jsonrpclite.core.client.impl.WSClient;
+import io.github.qyvlik.jsonrpclite.core.client.impl.WSConnector;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubRequestObject;
@@ -18,21 +21,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class RpcClient {
     private final AtomicLong rpcRequestCounter = new AtomicLong(0);
-    private int sendTimeLimit = 1000;
+    private int sendTimeLimit = 500;
     private int bufferSizeLimit = 10000;
     private String wsUrl;
-    private OnlineClient onlineClient;
+    private WSClient client;
     private WSConnector connector;
 
     public RpcClient(String wsUrl, int sendTimeLimit, int bufferSizeLimit) {
         this.sendTimeLimit = sendTimeLimit;
         this.bufferSizeLimit = bufferSizeLimit;
         this.wsUrl = wsUrl;
-    }
-
-    @Deprecated
-    public RpcClient(String wsUrl) {
-        this(wsUrl, 1000, 10000);
     }
 
     public String getWsUrl() {
@@ -56,15 +54,15 @@ public class RpcClient {
     }
 
     public boolean isOpen() {
-        return onlineClient != null && onlineClient.isOpen();
+        return client != null && client.isOpen();
     }
 
     public Future<Boolean> startup() {
-        init();
+        initWSConnect();
         return connector.startupAsync();
     }
 
-    private void init() {
+    private void initWSConnect() {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         container.setDefaultMaxTextMessageBufferSize(10 * 1024 * 1024);
         connector = new WSConnector(wsUrl, container, new RpcClientTextHandler());
@@ -76,9 +74,9 @@ public class RpcClient {
         }
 
         if (subscribe != null && subscribe) {
-            onlineClient.getChannelCallback().put(channel, handler);
+            client.getChannelCallback().put(channel, handler);
         } else {
-            onlineClient.getChannelCallback().remove(channel);
+            client.getChannelCallback().remove(channel);
         }
 
         SubRequestObject subRequestObject = new SubRequestObject();
@@ -86,22 +84,10 @@ public class RpcClient {
         subRequestObject.setSubscribe(subscribe);
         subRequestObject.setParams(params);
 
-        onlineClient.sendText(new TextMessage(JSON.toJSONString(subRequestObject)));
+        client.sendText(new TextMessage(JSON.toJSONString(subRequestObject)));
     }
 
     public void callRpcAsync(String method, List params) throws Exception {
-        callRpcAsync(method, params, true);
-    }
-
-    /**
-     * @param method         rpc method
-     * @param params         rpc params
-     * @param ignoreResponse ignore rpc response
-     * @return
-     * @throws Exception
-     */
-    @Deprecated
-    public Future<ResponseObject> callRpcAsync(String method, List params, boolean ignoreResponse) throws Exception {
         if (!isOpen()) {
             throw new RuntimeException("callRpcAsync failure webSocketSession is not open");
         }
@@ -111,7 +97,7 @@ public class RpcClient {
         requestObject.setId(id);
         requestObject.setMethod(method);
         requestObject.setParams(params);
-        return callRpcAsyncInternal(requestObject, ignoreResponse);
+        callRpcAsyncInternal(requestObject, true);
     }
 
     public Future<ResponseObject> callRpc(String method, List params) throws Exception {
@@ -137,10 +123,10 @@ public class RpcClient {
         RpcResponseFuture rpcResponseFuture = null;
         if (!ignoreResponse) {
             rpcResponseFuture = new RpcResponseFuture();
-            onlineClient.getRpcCallback().put(requestObject.getId(), rpcResponseFuture);
+            client.getRpcCallback().put(requestObject.getId(), rpcResponseFuture);
         }
 
-        onlineClient.sendText(new TextMessage(JSON.toJSONString(requestObject)));
+        client.sendText(new TextMessage(JSON.toJSONString(requestObject)));
 
         return rpcResponseFuture;
     }
@@ -148,28 +134,30 @@ public class RpcClient {
     private class RpcClientTextHandler extends AbstractWebSocketHandler {
 
         public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-            onlineClient = new OnlineClient(session, getSendTimeLimit(), getBufferSizeLimit());
+            client = new WSClient(session, getSendTimeLimit(), getBufferSizeLimit());
         }
 
         @Override
         protected void handleTextMessage(WebSocketSession session, TextMessage message)
                 throws Exception {
-            if (onlineClient != null
-                    && onlineClient.getSession().getId().equals(session.getId())
-                    && onlineClient.isOpen()) {
-                onlineClient.onTextMessage(message);
+            if (client != null
+                    && client.getSession().getId().equals(session.getId())
+                    && client.isOpen()) {
+                client.onTextMessage(message);
             }
         }
 
         @Override
         public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-            onlineClient.onClose(session, status);
-            onlineClient = null;
+            if (client != null) {
+                client.onClose(session, status);
+                client = null;
+            }
         }
 
         @Override
         public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-            onlineClient.onError(session, exception);
+            client.onError(session, exception);
         }
     }
 }

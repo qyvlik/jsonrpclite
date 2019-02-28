@@ -6,7 +6,7 @@ import io.github.qyvlik.jsonrpclite.core.handle.WebSocketFilter;
 import io.github.qyvlik.jsonrpclite.core.handle.WebSocketSessionContainer;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker.RpcDispatcher;
-import io.github.qyvlik.jsonrpclite.core.jsonrpc.rpcinvoker.RpcExecutor;
+import io.github.qyvlik.jsonrpclite.core.jsonrpc.concurrent.RpcExecutor;
 import io.github.qyvlik.jsonrpclite.example.client.GameClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
