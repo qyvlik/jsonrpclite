@@ -5,6 +5,7 @@ import io.github.qyvlik.jsonrpclite.core.client.ChannelMessageHandler;
 import io.github.qyvlik.jsonrpclite.core.client.RpcClient;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.pub.ChannelMessage;
+import io.github.qyvlik.jsonrpclite.example.game.method.request.ComplexRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -54,6 +55,28 @@ public class GameClient {
         }
     }
 
+    private void complex() {
+        if (rpcClient == null || !rpcClient.isOpen()) {
+            return;
+        }
+
+        try {
+            ComplexRequest request = new ComplexRequest();
+            request.setParam1("hello");
+            request.setParam1("world");
+            request.setParam3(Lists.newArrayList("first", "second"));
+            Future<ResponseObject> future = rpcClient.callRpc(
+                    "pub.complex", Lists.newArrayList(request));
+
+            ResponseObject responseObject = future.get();
+
+            logger.info("complex:{}", responseObject);
+
+        } catch (Exception e) {
+            logger.error("complex error:", e);
+        }
+    }
+
     private void listen() {
         if (rpcClient == null || !rpcClient.isOpen()) {
             return;
@@ -85,6 +108,8 @@ public class GameClient {
 
         if (this.rpcClient != null && this.rpcClient.isOpen()) {
             ping();
+
+            complex();
         }
     }
 

@@ -63,10 +63,6 @@ public class WSConnector {
             this.startup = new ResultFuture<Boolean>();
         }
 
-        public WebSocketHandler getDelegate() {
-            return delegate;
-        }
-
         public Future<Boolean> getStartup() {
             return startup;
         }

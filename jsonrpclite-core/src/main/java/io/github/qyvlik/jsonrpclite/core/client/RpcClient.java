@@ -7,9 +7,7 @@ import io.github.qyvlik.jsonrpclite.core.client.impl.WSConnector;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubRequestObject;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 import javax.websocket.ContainerProvider;
@@ -71,7 +69,7 @@ public class RpcClient {
 
     public void listenSub(String channel, Boolean subscribe, List params, ChannelMessageHandler handler) throws IOException {
         if (!isOpen()) {
-            throw new RuntimeException("callRpcAsyncInternal failure webSocketSession is not open");
+            throw new RuntimeException("listenSub failure webSocketSession is not open");
         }
 
         if (subscribe != null && subscribe) {
@@ -157,8 +155,15 @@ public class RpcClient {
         }
 
         @Override
+        public boolean supportsPartialMessages() {
+            return false;
+        }
+
+        @Override
         public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-            client.onError(session, exception);
+            if (client != null) {
+                client.onError(session, exception);
+            }
         }
     }
 }

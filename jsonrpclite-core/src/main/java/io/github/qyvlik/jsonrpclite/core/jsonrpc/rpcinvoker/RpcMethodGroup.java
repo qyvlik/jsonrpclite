@@ -123,11 +123,11 @@ public class RpcMethodGroup implements Serializable {
         try {
             return invoker.invoker(pList.toArray());
         } catch (IllegalAccessException e) {
-            throw new RpcInvokeException("invoker failure", e, RpcInvokeException.InvokeError.SystemError);
+            throw new RpcInvokeException("invoker failure: " + e.getMessage(), e, RpcInvokeException.InvokeError.SystemError);
         } catch (IllegalArgumentException e) {
-            throw new RpcInvokeException("invoker failure", e, RpcInvokeException.InvokeError.ParamNotMatch);
+            throw new RpcInvokeException("invoker failure: " + e.getMessage(), e, RpcInvokeException.InvokeError.ParamNotMatch);
         } catch (Exception e) {
-            throw new RpcInvokeException("invoker failure", e, RpcInvokeException.InvokeError.CallError);
+            throw new RpcInvokeException("invoker failure: " + e.getMessage(), e, RpcInvokeException.InvokeError.CallError);
         }
     }
 }

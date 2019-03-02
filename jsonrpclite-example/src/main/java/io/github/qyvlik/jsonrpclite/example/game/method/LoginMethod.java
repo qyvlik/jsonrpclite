@@ -10,6 +10,6 @@ public class LoginMethod {
 
     @RpcMethod(group = "game", value = "pub.login")
     public String pubLogin(String userName, String password) {
-        return "success";
+        return "login:" + userName;
     }
 }
