@@ -82,6 +82,9 @@ public class WSConnector {
 
         @Override
         public void handleTransportError(WebSocketSession webSocketSession, Throwable throwable) throws Exception {
+            if (!this.startup.isDone()) {
+                this.startup.setResult(false);
+            }
             this.delegate.handleTransportError(webSocketSession, throwable);
         }
 
