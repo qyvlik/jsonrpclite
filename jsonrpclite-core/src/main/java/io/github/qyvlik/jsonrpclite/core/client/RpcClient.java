@@ -7,7 +7,9 @@ import io.github.qyvlik.jsonrpclite.core.client.impl.WSConnector;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.request.RequestObject;
 import io.github.qyvlik.jsonrpclite.core.jsonrpc.entity.response.ResponseObject;
 import io.github.qyvlik.jsonrpclite.core.jsonsub.sub.SubRequestObject;
-import org.springframework.web.socket.*;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 import javax.websocket.ContainerProvider;
@@ -58,6 +60,17 @@ public class RpcClient {
     public Future<Boolean> startup() {
         initWSConnect();
         return connector.startupAsync();
+    }
+
+    public void close() {
+        if (!isOpen()) {
+            return;
+        }
+        try {
+            client.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void initWSConnect() {

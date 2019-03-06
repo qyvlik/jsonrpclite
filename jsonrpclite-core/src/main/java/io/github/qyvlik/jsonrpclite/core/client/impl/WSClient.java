@@ -42,6 +42,10 @@ public class WSClient {
         decorator.sendMessage(textMessage);
     }
 
+    public void close() throws IOException {
+        decorator.close();
+    }
+
     public void onTextMessage(TextMessage message) {
         JSONObject resObj = JSON.parseObject(message.getPayload());
         if (StringUtils.isNotBlank(resObj.getString("channel"))) {
