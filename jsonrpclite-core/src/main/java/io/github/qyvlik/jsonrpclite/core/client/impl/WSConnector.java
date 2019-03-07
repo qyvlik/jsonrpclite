@@ -69,10 +69,11 @@ public class WSConnector {
 
         @Override
         public void afterConnectionEstablished(WebSocketSession webSocketSession) throws Exception {
+            this.delegate.afterConnectionEstablished(webSocketSession);
+
             if (!this.startup.isDone()) {
                 this.startup.setResult(true);
             }
-            this.delegate.afterConnectionEstablished(webSocketSession);
         }
 
         @Override
@@ -82,18 +83,21 @@ public class WSConnector {
 
         @Override
         public void handleTransportError(WebSocketSession webSocketSession, Throwable throwable) throws Exception {
+            this.delegate.handleTransportError(webSocketSession, throwable);
+
             if (!this.startup.isDone()) {
                 this.startup.setResult(false);
             }
-            this.delegate.handleTransportError(webSocketSession, throwable);
         }
 
         @Override
         public void afterConnectionClosed(WebSocketSession webSocketSession, CloseStatus closeStatus) throws Exception {
+            this.delegate.afterConnectionClosed(webSocketSession, closeStatus);
+
             if (!this.startup.isDone()) {
                 this.startup.setResult(false);
             }
-            this.delegate.afterConnectionClosed(webSocketSession, closeStatus);
+
         }
 
         @Override
